@@ -1,0 +1,10 @@
+note over browser:
+Single Page Application
+sending a single HTTP POST 
+to Server when saving
+Note
+end note
+browser -> server: HTTP POST  https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+
+
