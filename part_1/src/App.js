@@ -31,7 +31,6 @@ const Total = ({total}) => {
 
   
 const Button = ({onClick, text}) => {
-
   return(
     <button onClick={onClick}>
       {text}
@@ -202,10 +201,10 @@ const App = () => {
     'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients'
   ] 
   
-  const [anecdoteText, setAnecdoteText] = useState(anecdotes[Math.floor(Math.random() * anecdotes.length)]);
+  const [anecdoteText, setAnecdoteText] = useState(anecdotes[0]);
   
   const [votes, setVotes] = useState({
-      index:       Math.floor(Math.random() * anecdotes.length), 
+      index:       0, 
       num:         Array(anecdotes.length).fill(0),
       mostVoteIdx: 0,
       mostVoteVal: 0
@@ -213,8 +212,9 @@ const App = () => {
   );
   
   const handleAnecdote = () => {
-    setVotes({...votes, index: Math.floor(Math.random() * anecdotes.length)})
-    return (setAnecdoteText(anecdotes[votes.index]))
+    let temp = Math.floor(Math.random() * anecdotes.length)
+    setVotes({...votes, index: temp})
+    return (setAnecdoteText(anecdotes[temp]))
   }
 
   const handleVote = () => {
@@ -274,11 +274,13 @@ const App = () => {
                     neutralVal   ={feedback.neutral}/>
         <br/>
         <Title   title = 'Anecdote'/>
+
         <Display text  = {votes.index + ' - ' + anecdoteText} />
+        
         <Display text  = {'Has ' + votes.num[votes.index] + ' votes'} />
         <Button  text  = 'Vote' onClick={handleVote}/>
         <Button  text  = 'Next Anecdote' onClick={handleAnecdote}/>
-        <Title   title = {'Anecdote has the most vote of ' + votes.mostVoteVal}/>
+        <Title   title = {'Anecdote ' + votes.mostVoteIdx + ' has the most vote of ' + votes.mostVoteVal}/>
         <Display text  = {votes.mostVoteIdx + ' - ' + anecdotes[votes.mostVoteIdx]} />
       </div>
     )
