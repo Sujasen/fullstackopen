@@ -1,11 +1,19 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import Note from './components/Note'
 import Course from './components/Course'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import FindCountries from './components/FindCountries'
+import axios from 'axios'
+import commentService  from './services/commentService'
+import phoneService from './services/phoneService'
+import Notification from './components/Notification'
+import Footer from './components/Footer'
 
-function App({notes}) {
+
+
+function App() {
   const course = [
     {
       id: 1,
@@ -51,13 +59,26 @@ function App({notes}) {
     }
   ]
   //console.log('App Level: ', course);
+
+
   
   ///////////////////////////////////////////////////
   // Adding Comments
   ///////////////////////////////////////////////////
-  const [comment, setComment]       = useState(notes);
+  const [comment, setComment]       = useState([]);
   const [newComment, setNewComment] = useState('a new comment');
   const [showAll, setShowAll]       = useState(true);
+  const [errorMsg, setErrorMsg]     = useState(null)
+
+
+  useEffect( () => {
+    commentService
+        .getAll()
+        .then(newComment => {
+            setComment(newComment)
+        })
+  }, [])
+
 
   const addComment = (event) => {
     event.preventDefault(); // Prevents page refreshing.
@@ -66,16 +87,42 @@ function App({notes}) {
       content: newComment,
       date: new Date().toISOString(),
       important: Math.random() < 0.5,
-      id: comment.length + 1
+      //id: comment.length + 1
     }
+    
+    commentService
+        .create(commentObject)
+        .then(returnedComment => {
+          setComment(comment.concat(returnedComment))
+          setNewComment('');
+        })
 
-    setComment(comment.concat(commentObject))
-    setNewComment('');
+  
   }
 
   const handleCommentChange = (event) => {
-    console.log(event.target.value);
+    //console.log(event.target.value);
     setNewComment(event.target.value);
+  }
+
+  const toggleImportanceOf = (id) => {
+    const comm        = comment.find(n => n.id === id)
+    const changedComm =  {...comm, important: !comm.important}
+
+    commentService
+      .update(id, changedComm)
+      .then(returnedComment => {
+        setComment(comment.map(temp => temp.id !== id ? temp : returnedComment))
+      })
+      .catch(error => {
+        setErrorMsg(
+          `Note '${comm.content}' was already removed from server`
+        )
+        setTimeout(() => {
+          setErrorMsg(null)
+        }, 5000)
+        setComment(comment.filter(n => n.id !== id))
+      })
   }
 
   // commentToShow returns an array
@@ -84,15 +131,20 @@ function App({notes}) {
   ///////////////////////////////////////////////////////
   // PhoneBook
   ///////////////////////////////////////////////////////
-  const [newName,   setNewName]   = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [filter,    setFilter]    = useState('')
-  const [persons, setPersons] = useState([
-    { id: 1, name: 'Arto Hellas'     , number: '(000) 111-2222' },
-    { id: 2, name: 'Ada Lovelace'    , number: '39-44-5323523'  },
-    { id: 3, name: 'Dan Abramov'     , number: '12-43-234345'   },
-    { id: 4, name: 'Mary Poppendieck', number: '39-23-6423122'  }
-  ])
+  useEffect(() => {
+    phoneService
+      .getAll()
+      .then(response => {
+          setPersons(response)
+        })
+    }, [] )
+
+  const [newName,   setNewName  ]  = useState('')
+  const [newNumber, setNewNumber]  = useState('')
+  const [filter,    setFilter   ]  = useState('')
+  const [persons,   setPersons  ]  = useState([])
+  const [phoneMsg,  setPhoneMsg ]  = useState(null)
+  const [cssClass,  setCssClass ]  = useState(null)
   
   const handleNameChange = (event) => {
     setNewName(event.target.value);
@@ -114,48 +166,133 @@ function App({notes}) {
 
     if (newName === '' || newNumber === '')
     {
-      alert('Missing contact information.');
+      // alert('Missing contact information.');
+      setCssClass('error')
+      setPhoneMsg('Missing contact information')
+
+      setTimeout(() => {
+        setErrorMsg(null)
+        setPhoneMsg(null)
+      }, 5000)
       return;
     }
 
     if (!alreadyExist){
-      const personObject = [
+      const personObject = 
         {
-          id: persons.length + 1,
           name: newName,
           number: newNumber
-          
         }
-      ]
-      
-      setPersons(persons.concat(personObject));
-      setNewName('');
-      setNewNumber('');
+
+      phoneService
+        .create(personObject)
+        .then(response => {
+          setPersons(persons.concat(response));
+
+
+          setCssClass('valid')
+          setPhoneMsg(`${newName} was added to the phonebook.`)
+    
+          setTimeout(() => {
+            setErrorMsg(null)
+            setPhoneMsg(null)
+            setNewName('');
+            setNewNumber('');
+          }, 5000)
+
+          
+
+        })
     }
     else {
-      alert(`${newName} already exists in the phonebook, stupid.`)
+      const result = window.confirm(`${newName} already exists in the phonebook, stupid. Replace old number with new?`)
+
+      if(result)
+      {
+        const curPerson = persons.find(temp => temp.name === newName)
+        const newPerson =  {...curPerson, number: newNumber}
+
+        phoneService
+          .update(newPerson.id, newPerson)
+          .then(response => {
+            const temp = persons.map((person) =>  person.id !== response.id ? person : response)
+            setPersons(temp);
+
+            setCssClass('valid')
+            setPhoneMsg(`${newNumber} was added to the phonebook for ${newName}.`)
+      
+            setTimeout(() => {
+              setErrorMsg(null)
+              setPhoneMsg(null)
+              setNewName('');
+              setNewNumber('');
+            }, 5000)
+
+          })
+      }
     }
   }
 
 //////////////////////////////////////////////////////////////
+///////// Countries
+//////////////////////////////////////////////////////////////
+const [countryObject,  setCountryObject  ]  = useState([])
+const [countryDisplay, setCountryDisplay ]  = useState([])
+//const [countryInput,   setCountryInput   ]  = useState('')
+
+
+useEffect(() =>{
+  axios.get('https://restcountries.com/v3.1/all')
+       .then(response => {
+        setCountryObject(response.data)
+       })
+},[])
+
+const handleCountryInput = (event) => {
+  const tempInput   = event.target.value.toLowerCase()
+
+  if(tempInput === '')
+  {
+    setCountryDisplay([])
+    return
+  }
+  else {
+    const tempDisplay = countryObject.filter(country => 
+                                            country.name.common.toLowerCase().includes(tempInput))
+    setCountryDisplay(tempDisplay)
+  }
+}
 
   return (
+ 
     <div>
+
+      <FindCountries handleCountryInput={handleCountryInput} countryDisplay={countryDisplay}/>
+
+      <br/>
       <h2>Phonebook</h2>
+      <Notification css={cssClass} message={phoneMsg}/>
       <PersonForm name={newName} handleName={handleNameChange} number={newNumber} handleNumber={handleNumberChange} handlePerson={handleAddPerson}/>
       <h2>Numbers</h2>
       <Filter handleFilter={handleFilter}/>
       <Persons data={persons} filter={filter}/>
       
       <br/>
+
       <h1>Comments</h1>
+      <Notification css='error' message={errorMsg}/>
       <div>
         <button onClick={() => setShowAll(!showAll)}>
           show {showAll ? 'important' : 'all' }
         </button>
       </div>
       <ul>
-        {commentToShow.map(note => <Note key={note.id} note={note}/>)}
+        {commentToShow.map((note, index) =>
+          <Note key ={index} 
+                note={note}
+                toggleImportance={() => toggleImportanceOf(note.id)}
+          />
+        )}
       </ul>
       
       <form onSubmit={addComment}>
@@ -166,6 +303,7 @@ function App({notes}) {
       <br/>
       <Course course={course[0]}/>
       <Course course={course[1]}/>
+      <Footer />
     </div>
   );
 }

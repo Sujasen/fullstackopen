@@ -1,9 +1,31 @@
-import React from 'react'
-
+import React, {useState, useEffect} from 'react'
+import phoneService from '../services/phoneService'
 
 
 const Persons = ({data, filter}) => {
-    const filteredContacts = data.filter( person => person.name.toLowerCase().includes(filter))
+    
+    const [people, setPeople] = useState(data)
+    const filteredContacts = people.filter( person => person.name.toLowerCase().includes(filter))
+
+    useEffect(() => {
+        setPeople(data)
+    }, [data])
+
+    const handleDelete = (person) => {
+        const result = window.confirm(`Delete ${person.name}?`)
+        if(result){
+            phoneService
+                .remove(person.id)
+                .then(() => {
+                    phoneService
+                        .getAll()
+                        .then(response => {
+                            setPeople(response)
+                        })
+                })
+        }
+    }
+
 
     return(
         <table>
@@ -20,6 +42,9 @@ const Persons = ({data, filter}) => {
                     <tr key={person.id}> 
                         <td>{person.name}</td> 
                         <td>{person.number}</td>
+                        <td>
+                             <button onClick={() => handleDelete(person)}>Delete</button>
+                        </td>
                     </tr> )}
             </tbody>
 
