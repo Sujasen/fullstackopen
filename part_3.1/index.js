@@ -32,6 +32,7 @@ const app = express()
 const morgan = require('morgan')
 
 app.use(express.json())   //used for POST
+app.use(express.static('build'))
 
 
 
@@ -143,7 +144,7 @@ app.post('/api/persons', (request, response)=> {
 
 })
 
-const PORT = 3003
+const PORT = process.env.PORT || 3003
 app.listen(PORT, () => {
     console.log(`Server starting on ${PORT}`)
 })

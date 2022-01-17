@@ -1,0 +1,37 @@
+npx create-react-app
+npx clear-npx-cache
+
+/////////////////////////////////////////////////////////////////////////
+npm-commands should always be run in the project root directory, which is where the package.json file can be found.
+
+npm start
+npm get registry
+npm run server
+npm install axios
+npm install json-server --save-dev
+
+npm init
+npm install express
+npm update
+npm install --save-dev nodemon
+node_modules/.bin/nodemon index.js
+
+HEROKU SETUP
+npm install -g heroku
+heroko create
+git push heroku main
+heroku logs
+-----
+cd my-project/
+git init
+heroku git:remote -a peaceful-sea-01532
+git add .
+git commit -am "make it better"
+git push heroku master
+
+heroku buildpacks:set heroku/nodejs
+
+
+
+
+
