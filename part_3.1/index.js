@@ -28,7 +28,6 @@ let persons  = [
 ////////////////////////////////////////////////
 
 const express = require('express')
-const { token } = require('morgan')
 const app = express()
 const morgan = require('morgan')
 
