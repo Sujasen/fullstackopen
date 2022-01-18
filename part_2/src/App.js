@@ -70,7 +70,6 @@ function App() {
   const [showAll, setShowAll]       = useState(true);
   const [errorMsg, setErrorMsg]     = useState(null)
 
-
   useEffect( () => {
     commentService
         .getAll()
@@ -171,7 +170,6 @@ function App() {
       setPhoneMsg('Missing contact information')
 
       setTimeout(() => {
-        setErrorMsg(null)
         setPhoneMsg(null)
       }, 5000)
       return;
@@ -189,19 +187,25 @@ function App() {
         .then(response => {
           setPersons(persons.concat(response));
 
-
           setCssClass('valid')
           setPhoneMsg(`${newName} was added to the phonebook.`)
     
           setTimeout(() => {
-            setErrorMsg(null)
             setPhoneMsg(null)
             setNewName('');
             setNewNumber('');
           }, 5000)
+        })
+        .catch(error => {
 
-          
-
+          setCssClass('error')
+          setPhoneMsg(`${error.response.data}`)
+    
+          setTimeout(() => {
+            setPhoneMsg(null)
+            setNewName('');
+            setNewNumber('');
+          }, 5000)
         })
     }
     else {
@@ -222,7 +226,6 @@ function App() {
             setPhoneMsg(`${newNumber} was added to the phonebook for ${newName}.`)
       
             setTimeout(() => {
-              setErrorMsg(null)
               setPhoneMsg(null)
               setNewName('');
               setNewNumber('');

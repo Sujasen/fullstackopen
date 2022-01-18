@@ -37,17 +37,19 @@ const app = express()
 
 /// Middleware
 const errorHandler = (error, request, response, next) => {
-    console.error("Middleware:", error.message)
+    console.error("Middleware:", error)
 
     if(error.name === 'CastError'){
         return response.status(400).send({error: "Middleware - Malformmed ID"})
-    }
+    } else if (error.name === 'ValidationError'){
+        return response.status(400).send(error.message)
+     }
 
     next(error)
 }
 
 app.use(express.json())   //used for POST
-app.use(express.static('build'))
+//app.use(express.static('build'))
 
 
 app.use(morgan( function (tokens, req, res) {
@@ -136,7 +138,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
     // }
 })
 
-app.post('/api/persons', (request, response)=> {
+app.post('/api/persons', (request, response, next)=> {
     const body   = request.body
     const name   = body.name
     const number = body.number
@@ -173,9 +175,10 @@ app.post('/api/persons', (request, response)=> {
     })
 
     newPerson.save()
-          .then(result => {
-              response.json(result)
-          })
+             .then(result => {
+                response.json(result)
+            })
+             .catch(error => next(error))
     // persons = persons.concat(newPerson)
     // console.log('newPerson', newPerson)
     // response.json(newPerson)

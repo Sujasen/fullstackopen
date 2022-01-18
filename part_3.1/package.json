@@ -19,6 +19,7 @@
     "express": "^4.17.2",
     "heroku": "^7.59.2",
     "mongoose": "^6.1.6",
+    "mongoose-unique-validator": "^3.0.0",
     "morgan": "^1.10.0",
     "node": "^17.3.1"
   },

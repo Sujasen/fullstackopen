@@ -17,7 +17,7 @@ const SingleCountry = ({data}) => {
                         {language}
                     </li> )}
             </ul>
-            <img src={data.flags['png']} ></img>
+            <img alt="1" src={data.flags['png']} ></img>
             <WeatherCard data={data}/>
         </div>
     )
