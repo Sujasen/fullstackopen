@@ -24,14 +24,20 @@ heroku logs
 -----
 cd my-project/
 git init
-heroku git:remote -a peaceful-sea-01532
+Comment/Notes tutorial: heroku git:remote -a peaceful-sea-01532
+Phonebook  assignemnts: heroku git:remote -a guarded-gorge-92468
 git add .
 git commit -am "make it better"
 git push heroku master
 
 heroku buildpacks:set heroku/nodejs
+heroku config:set MONGOOSE_URL=mongodb+srv://fullstack-admin:qwerty12@cluster0.gpehu.mongodb.net/note-app?retryWrites=true&w=majority
 
+MongoDB 
+mongoDB fullstack-admin
+mongo URI: mongodb+srv://fullstack-admin:<password>@cluster0.gpehu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+npm install mongoose
 
-
+npm install dotev --save
 
 

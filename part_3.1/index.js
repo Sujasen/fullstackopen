@@ -27,14 +27,27 @@ let persons  = [
 ]
 ////////////////////////////////////////////////
 
+require('dotenv').config()
 const express = require('express')
+const morgan  = require('morgan')
+const Person  = require('./models/person')
+
 const app = express()
-const morgan = require('morgan')
+
+
+/// Middleware
+const errorHandler = (error, request, response, next) => {
+    console.error("Middleware:", error.message)
+
+    if(error.name === 'CastError'){
+        return response.status(400).send({error: "Middleware - Malformmed ID"})
+    }
+
+    next(error)
+}
 
 app.use(express.json())   //used for POST
 app.use(express.static('build'))
-
-
 
 
 app.use(morgan( function (tokens, req, res) {
@@ -66,42 +79,62 @@ app.get('/', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-    const personCount = persons.length
-    const info        = `Phonebook has info for ${personCount} people.`
-    const newLine     ='<br\>'
-    const dateTime    = new Date();
-
-    response.send(info + newLine + newLine + dateTime)
+    Person.find({})
+          .then(result => {
+              const text = `Phonebook has info for ${result.length} people. <br\> <br\> ${new Date}`
+              response.send(text)
+          })
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({})
+           .then(result => {
+              response.json(result)
+           })
 })
 
 app.get('/api/persons/:id', (request, response)=> {
-    const id     = Number(request.params.id);
-    const person = persons.find(temp => temp.id === id)
+    Person.findById(request.params.id)
+          .then(result => {
+              if(result){
+                response.json(result)
+              } else {
+                  response.status(404).send(`Persons ID ${request.params.id} not found. No action taken.`)
+              }
+          })
+          .catch(result => {
+              response.status(404).end()
+          })
+          
+    // const id     = Number(request.params.id);
+    // const person = persons.find(temp => temp.id === id)
 
-    if(person)
-    {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    // if(person)
+    // {
+    //     response.json(person)
+    // } else {
+    //     response.status(404).end()
+    // }
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    if(persons.find(temp => temp.id === id)){
-        persons = persons.filter(temp => temp.id !== id)
-        response.send(`Person ${id} removed`).end()
-    } else {
-        response.status(404).send(`Person ${id} not found`).end()
-    }
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+           .then (result => {
+               if(result){
+                   response.send(`Person ID ${request.params.id} removed from MongoDB `);
+               } else {
+                   response.status(404).send(`Person ID ${request.params.id} was not found. No action taken`).end()
+               }
+           })
+           .catch(error => next(error))
+    // const id = Number(request.params.id)
+    // if(persons.find(temp => temp.id === id)){
+    //     persons = persons.filter(temp => temp.id !== id)
+    //     response.send(`Person ${id} removed`).end()
+    // } else {
+    //     response.status(404).send(`Person ${id} not found`).end()
+    // }
 })
-
-
-
 
 app.post('/api/persons', (request, response)=> {
     const body   = request.body
@@ -123,31 +156,56 @@ app.post('/api/persons', (request, response)=> {
         })
     }
 
-    let newId = Math.floor(Math.random() * 999999999)
+    // let newId = Math.floor(Math.random() * 999999999)
 
-    while(persons.find(temp => temp.id === newId))
-    {
-        console.log(`curId ${newId} matches, generating new id` )
-        newId = Math.floor(Math.random() * 999999999)
-    }
-    console.log('newId', newId)
-    const newPerson = {
-        id:     newId,
+    // while(persons.find(temp => temp.id === newId))
+    // {
+    //     console.log(`curId ${newId} matches, generating new id` )
+    //     newId = Math.floor(Math.random() * 999999999)
+    // }
+    // console.log('newId', newId)
+
+    
+    const newPerson = new Person({
+        // id:     newId,
         name:   name,
         number: number
-    }
+    })
 
-    persons = persons.concat(newPerson)
-    //console.log('newPerson', newPerson)
-
-    response.json(newPerson)
+    newPerson.save()
+          .then(result => {
+              response.json(result)
+          })
+    // persons = persons.concat(newPerson)
+    // console.log('newPerson', newPerson)
+    // response.json(newPerson)
 
 })
 
-const PORT = process.env.PORT || 3003
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body
+
+    const newPerson = {
+        name:   body.name,
+        number: body.number
+    }
+
+    Person.findByIdAndUpdate(request.params.id, newPerson, {new: true})
+        .then(result => {
+            console.log(result)
+            if(result){
+                response.json(result)
+            } else {
+                response.status(404).send(`Person ID ${request.params.id} was not found. No action taken.`).end()
+            }
+        })
+        .catch(error => next(error))
+})
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server starting on ${PORT}`)
 })
 
-
+app.use(errorHandler)
 
