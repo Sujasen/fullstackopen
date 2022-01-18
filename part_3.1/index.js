@@ -49,7 +49,7 @@ const errorHandler = (error, request, response, next) => {
 }
 
 app.use(express.json())   //used for POST
-//app.use(express.static('build'))
+app.use(express.static('build'))
 
 
 app.use(morgan( function (tokens, req, res) {
