@@ -1,8 +1,7 @@
 const mongoose        = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
 
-
-mongoose.connect(process.env.MONGOOSE_URL)
+mongoose.connect(process.env.MONGOOSE_URI)
   .then(result => {
     console.log('Connected to MongoDB: Phonebook-app')
   })

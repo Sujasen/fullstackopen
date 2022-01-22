@@ -1,13 +1,9 @@
 import React, {useState, useEffect} from 'react'
 import Note from './components/Note'
 import Course from './components/Course'
-import Filter from './components/Filter'
-import PersonForm from './components/PersonForm'
-import Persons from './components/Persons'
 import FindCountries from './components/FindCountries'
 import axios from 'axios'
 import commentService  from './services/commentService'
-import phoneService from './services/phoneService'
 import Notification from './components/Notification'
 import Footer from './components/Footer'
 
@@ -126,115 +122,6 @@ function App() {
 
   // commentToShow returns an array
   const commentToShow = showAll ? comment : comment.filter(temp => temp.important === true);
-  
-  ///////////////////////////////////////////////////////
-  // PhoneBook
-  ///////////////////////////////////////////////////////
-  useEffect(() => {
-    phoneService
-      .getAll()
-      .then(response => {
-          setPersons(response)
-        })
-    }, [] )
-
-  const [newName,   setNewName  ]  = useState('')
-  const [newNumber, setNewNumber]  = useState('')
-  const [filter,    setFilter   ]  = useState('')
-  const [persons,   setPersons  ]  = useState([])
-  const [phoneMsg,  setPhoneMsg ]  = useState(null)
-  const [cssClass,  setCssClass ]  = useState(null)
-  
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
-  }
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  }
-
-  const handleFilter = (event) => {
-    setFilter(event.target.value.toLowerCase());
-  }
-
-  const handleAddPerson = (event) => {
-
-    event.preventDefault();
-    const alreadyExist = persons.some( person => person.name === newName);
-
-
-    if (newName === '' || newNumber === '')
-    {
-      // alert('Missing contact information.');
-      setCssClass('error')
-      setPhoneMsg('Missing contact information')
-
-      setTimeout(() => {
-        setPhoneMsg(null)
-      }, 5000)
-      return;
-    }
-
-    if (!alreadyExist){
-      const personObject = 
-        {
-          name: newName,
-          number: newNumber
-        }
-
-      phoneService
-        .create(personObject)
-        .then(response => {
-          setPersons(persons.concat(response));
-
-          setCssClass('valid')
-          setPhoneMsg(`${newName} was added to the phonebook.`)
-    
-          setTimeout(() => {
-            setPhoneMsg(null)
-            setNewName('');
-            setNewNumber('');
-          }, 5000)
-        })
-        .catch(error => {
-
-          setCssClass('error')
-          setPhoneMsg(`${error.response.data}`)
-    
-          setTimeout(() => {
-            setPhoneMsg(null)
-            setNewName('');
-            setNewNumber('');
-          }, 5000)
-        })
-    }
-    else {
-      const result = window.confirm(`${newName} already exists in the phonebook, stupid. Replace old number with new?`)
-
-      if(result)
-      {
-        const curPerson = persons.find(temp => temp.name === newName)
-        const newPerson =  {...curPerson, number: newNumber}
-
-        phoneService
-          .update(newPerson.id, newPerson)
-          .then(response => {
-            const temp = persons.map((person) =>  person.id !== response.id ? person : response)
-            setPersons(temp);
-
-            setCssClass('valid')
-            setPhoneMsg(`${newNumber} was added to the phonebook for ${newName}.`)
-      
-            setTimeout(() => {
-              setPhoneMsg(null)
-              setNewName('');
-              setNewNumber('');
-            }, 5000)
-
-          })
-      }
-    }
-  }
 
 //////////////////////////////////////////////////////////////
 ///////// Countries
@@ -271,16 +158,6 @@ const handleCountryInput = (event) => {
     <div>
 
       <FindCountries handleCountryInput={handleCountryInput} countryDisplay={countryDisplay}/>
-
-      <br/>
-      <h2>Phonebook</h2>
-      <Notification css={cssClass} message={phoneMsg}/>
-      <PersonForm name={newName} handleName={handleNameChange} number={newNumber} handleNumber={handleNumberChange} handlePerson={handleAddPerson}/>
-      <h2>Numbers</h2>
-      <Filter handleFilter={handleFilter}/>
-      <Persons data={persons} filter={filter}/>
-      
-      <br/>
 
       <h1>Comments</h1>
       <Notification css='error' message={errorMsg}/>
