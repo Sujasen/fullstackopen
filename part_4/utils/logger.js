@@ -1,3 +1,4 @@
+// Module for console.log
 const info = (...params) => {
     console.log(...params)
 }

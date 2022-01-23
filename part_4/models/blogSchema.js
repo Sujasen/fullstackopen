@@ -1,3 +1,4 @@
+// MongoDB Blog Schema
 const mongoose = require('mongoose')
 
 const blogSchema = new mongoose.Schema({

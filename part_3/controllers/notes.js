@@ -1,25 +1,23 @@
 const notesRouter = require('express').Router()
 const Note        = require('../models/note')
 
-notesRouter.get('/', (request, response) => {
-  Note.find({}).then(notes => {
-    response.json(notes)
-  })
+notesRouter.get('/', async (request, response) => {
+  const notes = await Note.find({})
+  response.json(notes)
 })
 
-notesRouter.get('/:id', (request, response, next) => {
-  Note.findById(request.params.id)
-    .then(result => {
-      if(result){
-        response.json(result)
-      } else {
-        response.status(404).send()
-      }
-    })
-    .catch(error => next(error))
+notesRouter.get('/:id', async (request, response, next) => {
+  const  result = await Note.findById(request.params.id).catch(error => next(error))
+
+  if(result){
+    response.json(result)
+  } else {
+    response.status(404).send()
+  }
+
 })
 
-notesRouter.post('/', (request, response, next) => {
+notesRouter.post('/', async (request, response, next) => {
   const body = request.body
 
   if(body.content === undefined)
@@ -35,26 +33,21 @@ notesRouter.post('/', (request, response, next) => {
     date: new Date()
   })
 
-  newNote.save()
-    .then(savedNote => {
-      response.json(savedNote)
-    })
-    .catch(error => next(error))
+  const savedNote = await newNote.save().catch(error => next(error))
+  response.json(savedNote)
+
 })
 
-notesRouter.delete('/:id', (request, response, next) => {
-  Note.findByIdAndDelete(request.params.id)
-    .then(result => {
-      if(result){
-        response.send(`${request.params.id} has been deleted`)
-      } else {
-        response.send(`Unable to find id ${request.params.id}. No action taken.`)
-      }
-    })
-    .catch(error => next(error))
+notesRouter.delete('/:id', async (request, response, next) => {
+  const result = await Note.findByIdAndDelete(request.params.id).catch(error => next(error))
+  if(result){
+    response.send(`${request.params.id} has been deleted`)
+  } else {
+    response.send(`Unable to find id ${request.params.id}. No action taken.`)
+  }
 })
 
-notesRouter.put('/:id', (request, response, next) => {
+notesRouter.put('/:id', async (request, response, next) => {
   const body = request.body
 
   const temp = {
@@ -62,15 +55,12 @@ notesRouter.put('/:id', (request, response, next) => {
     important: body.important
   }
 
-  Note.findByIdAndUpdate(request.params.id, temp, { new: true })
-    .then(result => {
-      if(result){
-        response.json(result)
-      } else {
-        response.send(`Unable to find id ${request.params.id}. No action taken.`)
-      }
-    })
-    .catch(error => next(error))
+  const result = await Note.findByIdAndUpdate(request.params.id, temp, { new: true }).catch(error => next(error))
+  if(result){
+    response.json(result)
+  } else {
+    response.send(`Unable to find id ${request.params.id}. No action taken.`)
+  }
 })
 
 module.exports = notesRouter

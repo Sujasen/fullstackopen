@@ -1,3 +1,4 @@
+// API routes to MongoDB
 const blogRouter = require('express').Router()
 const blogObj    = require('../models/blogSchema')
 const logger     = require('../utils/logger')

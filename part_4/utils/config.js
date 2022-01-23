@@ -1,3 +1,4 @@
+/// Module for global variables
 require('dotenv').config()
 
 const PORT      = process.env.PORT;
