@@ -13,7 +13,17 @@ blogRouter.get('/', (request, response) => {
 blogRouter.post('/', (request, response) => {
     const body = request.body
 
-    logger.info(body)
+    if(!body.likes){
+        body.likes = 0
+    } else if ( !body.url)  {
+        return response.send(400).json({
+            error: 'missing url property'
+        })
+    } else if (!body.title) {
+        return response.send(400).json({
+            error: 'missing title property'
+        })
+    }
 
     const newBlog = new blogObj({
         title:  body.title,
@@ -28,5 +38,6 @@ blogRouter.post('/', (request, response) => {
            })
            .catch(error => logger.error(error))
 })
+
 
 module.exports = blogRouter
