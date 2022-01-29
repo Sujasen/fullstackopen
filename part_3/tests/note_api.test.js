@@ -11,38 +11,68 @@ const Note = require('../models/note')
 
 beforeEach(async () => {
   await Note.deleteMany({})
-
-  const noteObjects  = helper.initialNotes.map(note => new Note(note))
-  const promiseArray = noteObjects.map(note => note.save())
-  await Promise.all(promiseArray)
-
+  await Note.insertMany(helper.initialNotes)
 })
 
 
-describe('Note API tests', () => {
+describe('DB has notes', () => {
 
   test('Notes are returned as json', async () => {
     await api.get('/api/notes')
       .expect(200)
       .expect('Content-Type', /application\/json/)
-  }, 100000)
+  })
 
   ////////////////////////////////////////////////
-  test('there are 2 notes', async () => {
+  test('Return all notes', async () => {
     const response = await api.get('/api/notes')
     expect(response.body).toHaveLength(helper.initialNotes.length)
   })
 
   ////////////////////////////////////////////////
-  test('the first note is about HTTP methods', async () => {
+  test('Check specific note exist in DB', async () => {
     const response = await api.get('/api/notes')
 
     const contents = response.body.map(r => r.content)
     expect(contents).toContain('HTML is easy')
   })
 
+})
+describe('viewing a specfic note', () => {
   ////////////////////////////////////////////////
-  test('a valid note can be added', async () => {
+  test('a specific note can be viewed', async () => {
+    const notesAtStart = await helper.notesInDb()
+    const noteToView = notesAtStart[0]
+
+    const resultNote = await api
+      .get(`/api/notes/${noteToView.id}`)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const processedNoteToView = JSON.parse(JSON.stringify(noteToView))
+    expect(resultNote.body).toEqual(processedNoteToView)
+  })
+
+  test('fails with statuscode 404 if note doesnt exist', async () => {
+    const validNonexistingId = await helper.nonExistingId()
+
+    console.log(validNonexistingId)
+
+    await api
+      .get(`/api/notes/${validNonexistingId}`)
+      .expect(404)
+  })
+
+  test('fails with statuscode 400 id is invalid', async () => {
+    const invalidId = '5a3d5da59070081a82a3445'
+
+    await api.get(`/api/notes/${invalidId}`)
+      .expect(400)
+  })
+})
+
+describe('addition of a new note', () => {
+  test('succeeds with valid data', async () => {
     const newNote = {
       content: 'async/await simplifies making async calls',
       important: true
@@ -58,7 +88,6 @@ describe('Note API tests', () => {
 
     const contents = notesAtEnd.map(n => n.content)
     expect(contents).toContain('async/await simplifies making async calls')
-
   })
 
   ////////////////////////////////////////////////
@@ -78,20 +107,10 @@ describe('Note API tests', () => {
 
   })
 
-  ////////////////////////////////////////////////
-  test('a specific note can be viewed', async () => {
-    const notesAtStart = await helper.notesInDb()
-    const noteToView = notesAtStart[0]
+})
 
-    const resultNote = await api
-      .get(`/api/notes/${noteToView.id}`)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
 
-    const processedNoteToView = JSON.parse(JSON.stringify(noteToView))
-    expect(resultNote.body).toEqual(processedNoteToView)
-  })
-
+describe('deletion of a note', () => {
   ////////////////////////////////////////////////
   test('a note can be deleted', async () => {
     const notesAtStart = await helper.notesInDb()
@@ -107,11 +126,13 @@ describe('Note API tests', () => {
     const contents = notesAtEnd.map(r => r.content)
     expect(contents).not.toContain(noteToDelete.content)
   })
-
-  afterAll(() => {
-    mongoose.connection.close()
-  })
-
 })
+
+
+afterAll(() => {
+  mongoose.connection.close()
+})
+
+
 
 

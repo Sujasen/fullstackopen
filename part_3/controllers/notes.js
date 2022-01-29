@@ -8,7 +8,11 @@ notesRouter.get('/', async (request, response) => {
 
 notesRouter.get('/:id', async (request, response) => {
   const result = await Note.findById(request.params.id)
-  response.json(result)
+  if(result){
+    response.json(result)
+  } else {
+    response.status(404).end()
+  }
 
 })
 
