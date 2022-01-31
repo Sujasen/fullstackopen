@@ -1,4 +1,5 @@
 const Blog = require('../models/blogSchema')
+const User = require('../models/userSchema')
 
 const initialBlogs = [
     {
@@ -46,11 +47,28 @@ const initialBlogs = [
     }
 ]
 
+const initialUsers = [
+    {
+        "username":"user1",
+        "password":"thisismysuperduperlongpasswordthatissuperduperlongandsuperdupercoolhahahahhahahahahahahahhahahahahahahahahhahahahahahahahahahhahahahahahahahahahahahahahaaahahhahahahhhahahahahahahahahahahahahhahahahahahahhahahahaahahhahahahahahahahahahhahahahaaaaaaaahhahhahhahhahhahahahahahahahhaha",
+    },
+    {
+        "username":"user2",
+        "password":"user2"
+    }
+]
+
 const getBlogs = async () => {
     const data = await Blog.find({})
-
     return data.map(blog => blog.toJSON())
 }
 
+const getUsers = async () => {
+    const data = await User.find({})
+    return data.map(user => user.toJSON())
+}
 
-module.exports = {initialBlogs, getBlogs}
+module.exports = {
+    initialBlogs, getBlogs,
+    initialUsers, getUsers
+}
