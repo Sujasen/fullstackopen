@@ -6,6 +6,7 @@ import axios from 'axios'
 import commentService  from './services/commentService'
 import Notification from './components/Notification'
 import Footer from './components/Footer'
+import loginService  from './services/login'
 
 
 
@@ -64,7 +65,10 @@ function App() {
   const [comment, setComment]       = useState([]);
   const [newComment, setNewComment] = useState('a new comment');
   const [showAll, setShowAll]       = useState(true);
-  const [errorMsg, setErrorMsg]     = useState(null)
+  const [errorMsg, setErrorMsg]     = useState(null);
+  const [username, setUsername]     = useState('');
+  const [password, setPassword]     = useState('');
+  const [user,     setUser]         = useState(null);
 
   useEffect( () => {
     commentService
@@ -74,6 +78,14 @@ function App() {
         })
   }, [])
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('LoggedInUser')
+    if(loggedUserJSON){
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      commentService.setToken(user.token)
+    }
+  }, [])
 
   const addComment = (event) => {
     event.preventDefault(); // Prevents page refreshing.
@@ -120,6 +132,52 @@ function App() {
       })
   }
 
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
+    try{
+      const user = await loginService.login({
+          username, password,
+      })
+
+      window.localStorage.setItem('LoggedInUser', JSON.stringify(user))
+
+      commentService.setToken(user.token)
+      setUser(user)
+      setUsername('')
+      setPassword('')
+    } catch (exception){
+      setErrorMsg('Wrong credentials')
+      setTimeout(() => { setErrorMsg(null) }, 5000)
+    }
+
+  }
+
+  const loginForm = () => {
+    return (
+    <form onSubmit={handleLogin}>
+      <div>
+        username 
+        <input type="text" value={username} name="Username" onChange={({ target }) => setUsername(target.value)}/>
+      </div>
+      <div>
+        password
+        <input type="password" value={password} name="Password" onChange={({ target }) => setPassword(target.value)}/>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+    )
+  }
+
+  const commentForm = () => {
+    return(
+    <form onSubmit={addComment}>
+      <input value={newComment} onChange={handleCommentChange}/>
+      <button type="submit">save</button>
+    </form>
+    )
+  }
+
   // commentToShow returns an array
   const commentToShow = showAll ? comment : comment.filter(temp => temp.important === true);
 
@@ -161,6 +219,14 @@ const handleCountryInput = (event) => {
 
       <h1>Comments</h1>
       <Notification css='error' message={errorMsg}/>
+
+      { user === null ? loginForm() : 
+        <div> 
+          <p>{user.name} logged-in</p> 
+          {commentForm()} 
+        </div>
+      }
+
       <div>
         <button onClick={() => setShowAll(!showAll)}>
           show {showAll ? 'important' : 'all' }
@@ -174,11 +240,6 @@ const handleCountryInput = (event) => {
           />
         )}
       </ul>
-      
-      <form onSubmit={addComment}>
-        <input value= {newComment} onChange={handleCommentChange}/>
-        <button type="submit">save</button>
-      </form>
 
       <br/>
       <Course course={course[0]}/>

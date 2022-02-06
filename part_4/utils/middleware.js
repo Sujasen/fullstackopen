@@ -11,6 +11,7 @@ const errorHandler = (error, request, response, next) => {
 
 const tokenExtractor = (request, response, next) => {
     const authorization = request.get('authorization')
+    console.log("request", request.body)
     if(authorization === undefined && request.method === 'GET'){
         return next()
     }else if (authorization === undefined){
@@ -25,6 +26,7 @@ const userExtractor = async (request, response, next) => {
     if(request.method === 'GET'){
         return next()
     } else {
+        
         const decodedToken = jwt.verify(request.token, process.env.SECRET)
         if(!decodedToken.id){
             return response.status(401).json({ error: 'token missing or invalid' })

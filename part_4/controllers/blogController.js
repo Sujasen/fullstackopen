@@ -5,7 +5,7 @@ const userObj    = require('../models/userSchema')
 const jwt        = require('jsonwebtoken')
 
 blogRouter.get('/', async (request, response) => {
-    const result = await blogObj.find({})
+    const result = await blogObj.find({})//.populate({author: 1, likes: 1, title: 1, url: 1})
     return response.json(result)
 })
 
@@ -13,6 +13,7 @@ blogRouter.get('/', async (request, response) => {
 blogRouter.post('/', async (request, response) => {
     const body = request.body
     const user = request.user
+
 
     if(!body.likes){
         body.likes = 0
