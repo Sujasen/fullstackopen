@@ -1,6 +1,19 @@
-import React from 'react'
+import React, { useState }from 'react'
 
-const BlogForm = ({titleVal, authorVal, urlVal, setTitleVal, setAuthorVal, setUrlVal, createAction}) => {
+const BlogForm = ({createAction}) => {
+    const [title, setTitle]       = useState('')
+    const [author, setAuthor]     = useState('')
+    const [url,    setUrl]        = useState('') 
+
+    const handleCreate = (event) => {
+
+        createAction( {title, author, url})
+        setTitle('')
+        setAuthor('')
+        setUrl('')
+    }
+
+    
 
     return(
         <div>
@@ -9,18 +22,18 @@ const BlogForm = ({titleVal, authorVal, urlVal, setTitleVal, setAuthorVal, setUr
                 <tbody>
                     <tr>
                         <td>Title:  </td>
-                        <td><input value={titleVal} onChange={({target}) => setTitleVal(target.value)}/></td>
+                        <td><input value={title} onChange={({target}) => setTitle(target.value)}/></td>
                     </tr>
                     <tr>
                         <td>Author: </td>
-                        <td><input value={authorVal} onChange={({target}) => setAuthorVal(target.value)}/></td>
+                        <td><input value={author} onChange={({target}) => setAuthor(target.value)}/></td>
                     </tr>
                     <tr>
                         <td>URL:    </td>
-                        <td><input value={urlVal} onChange={({target}) => setUrlVal(target.value)}/></td>
+                        <td><input value={url} onChange={({target}) => setUrl(target.value)}/></td>
                     </tr>
                     <tr>
-                        <td><button onClick={createAction}>Create Blog</button></td>
+                        <td><button onClick={handleCreate}>Create Blog</button></td>
                     </tr>
                 </tbody>
             </table>

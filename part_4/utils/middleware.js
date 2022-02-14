@@ -12,6 +12,7 @@ const errorHandler = (error, request, response, next) => {
 const tokenExtractor = (request, response, next) => {
     const authorization = request.get('authorization')
     console.log("request", request.body)
+    
     if(authorization === undefined && request.method === 'GET'){
         return next()
     }else if (authorization === undefined){

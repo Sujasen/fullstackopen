@@ -59,6 +59,7 @@ blogRouter.delete('/:id', async (request, response) => {
 })
 
 blogRouter.put('/:id', async (request, response) => {
+
     const body = request.body
     const user = request.user
 
@@ -72,8 +73,8 @@ blogRouter.put('/:id', async (request, response) => {
     if(!blogToUpdate){
         return response.status(400).json({ message: `${request.params.id} not found. No action taken`})
     } else if (blogToUpdate.user.toString() === user.id.toString()){
-        await blogObj.findOneAndUpdate(request.params.id, newBlog, {new: true} )
-        return response.status(204).end()
+        let temp = await blogObj.findByIdAndUpdate(request.params.id, newBlog, {new: true} )
+        return response.status(200).json(temp)
     } else {
         return response.status(401).json({ error: `${request.params.id} blog doesnt belong to user`})
     }

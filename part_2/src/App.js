@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import Note from './components/Note'
 import Course from './components/Course'
 import FindCountries from './components/FindCountries'
@@ -7,6 +7,9 @@ import commentService  from './services/commentService'
 import Notification from './components/Notification'
 import Footer from './components/Footer'
 import loginService  from './services/login'
+import LoginForm from './components/LoginForm'
+import Togglable from './components/Togglable'
+import CommentForm from './components/CommentForm'
 
 
 
@@ -63,12 +66,13 @@ function App() {
   // Adding Comments
   ///////////////////////////////////////////////////
   const [comment, setComment]       = useState([]);
-  const [newComment, setNewComment] = useState('a new comment');
+  // const [newComment, setNewComment] = useState('a new comment');
   const [showAll, setShowAll]       = useState(true);
   const [errorMsg, setErrorMsg]     = useState(null);
   const [username, setUsername]     = useState('');
   const [password, setPassword]     = useState('');
   const [user,     setUser]         = useState(null);
+  const CommentFormRef = useRef()
 
   useEffect( () => {
     commentService
@@ -87,29 +91,13 @@ function App() {
     }
   }, [])
 
-  const addComment = (event) => {
-    event.preventDefault(); // Prevents page refreshing.
-
-    const commentObject = {
-      content: newComment,
-      date: new Date().toISOString(),
-      important: Math.random() < 0.5,
-      //id: comment.length + 1
-    }
-    
+  const addComment = (commentObject) => {
+    CommentFormRef.current.toggleVisibility()
     commentService
         .create(commentObject)
         .then(returnedComment => {
           setComment(comment.concat(returnedComment))
-          setNewComment('');
         })
-
-  
-  }
-
-  const handleCommentChange = (event) => {
-    //console.log(event.target.value);
-    setNewComment(event.target.value);
   }
 
   const toggleImportanceOf = (id) => {
@@ -155,26 +143,22 @@ function App() {
 
   const loginForm = () => {
     return (
-    <form onSubmit={handleLogin}>
-      <div>
-        username 
-        <input type="text" value={username} name="Username" onChange={({ target }) => setUsername(target.value)}/>
-      </div>
-      <div>
-        password
-        <input type="password" value={password} name="Password" onChange={({ target }) => setPassword(target.value)}/>
-      </div>
-      <button type="submit">Login</button>
-    </form>
+      <Togglable buttonLabel='login'>
+        <LoginForm submitAction={handleLogin} 
+                   userID={username}
+                   userPass={password}
+                   setUserID={setUsername}
+                   setUserPass={setPassword} />
+       </Togglable>
     )
   }
 
   const commentForm = () => {
     return(
-    <form onSubmit={addComment}>
-      <input value={newComment} onChange={handleCommentChange}/>
-      <button type="submit">save</button>
-    </form>
+      <Togglable buttonLabel='New Note' ref={CommentFormRef}>      
+        <CommentForm createComment={addComment}/>
+      </Togglable>
+
     )
   }
 
