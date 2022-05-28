@@ -6,6 +6,7 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import Togglable from './components/Toggleable'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
